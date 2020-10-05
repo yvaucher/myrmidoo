@@ -9,13 +9,13 @@ from invoke import task
 
 from collections import defaultdict
 
-from .common import exit_msg
+from .common import exit_msg, ensure_cache_dir, cache_dir
+from . import project as project_task
 
 MIG_FPATH = os.path.join("odoo", "migration.yml")
 VERSION_FPATH = os.path.join("odoo", "VERSION")
 LOCAL_SRC_PATH = os.path.join("odoo", "local-src")
-DATA_PATH = os.path.join(".data")
-DOCKER_PROJECT_PATH = os.path.join(".data", "docker-projects")
+DOCKER_PROJECT_PATH = os.path.join(cache_dir(), "docker-projects")
 
 
 def _get_local_src(project):
@@ -31,7 +31,6 @@ def _get_OCA_addons(version):
 
     """
     # TODO create the addons lists
-    DATA_PATH
     return []
 
 
@@ -40,7 +39,7 @@ def _get_CE_addons(version):
 
     """
     # TODO create the addons lists
-    fname = os.path.join(DATA_PATH, "odoo", "odoo", version + "-addons")
+    fname = os.path.join(cache_dir(), "odoo", "odoo", version + "-addons")
     if not os.path.isfile(fname):
         return []
     with open(fname) as f:
@@ -48,11 +47,27 @@ def _get_CE_addons(version):
 
 
 def _get_EE_addons(version):
-    fname = os.path.join(DATA_PATH, "odoo", "enterprise", version + "-addons")
+    fname = os.path.join(cache_dir(), "odoo", "enterprise", version + "-addons")
     if not os.path.isfile(fname):
         return []
     with open(fname) as f:
         return f.read().splitlines()
+
+
+def _get_project_list():
+    list_fp = os.path.join(cache_dir(), "project.list")
+    if os.path.exists(list_fp):
+        with open(list_fp) as f:
+            return f.read().splitlines()
+    else:
+        print("Generating project list into {}".format(list_fp))
+
+        projects = []
+        with open(list_fp, "a") as f:
+            for project_name in project_task._ls():
+                f.write(project_name + "\n")
+                projects.append(project_name)
+        return projects
 
 
 def _get_raw_addon_list():
@@ -61,14 +76,17 @@ def _get_raw_addon_list():
 
     """
     addons = []
-    # TODO if project.list doesn't exist create it
-    with open(os.path.join(DATA_PATH, "project.list")) as f:
-        projects = f.read().splitlines()
 
+    projects = _get_project_list()
     project_errors = {}
 
+    project_dir = DOCKER_PROJECT_PATH
+    if not os.path.exists(project_dir):
+        os.makedirs(project_dir)
+
     for p in projects:
-        project_path = os.path.join(DOCKER_PROJECT_PATH, p)
+        project_path = os.path.join(project_dir, p)
+
         local_addons = _get_local_src(project_path)
         with open(os.path.join(project_path, VERSION_FPATH)) as version:
             v = version.read().split(".")
@@ -182,6 +200,7 @@ def ls(
     @param table_fmt: Output format of the table (tabulate format)
 
     """
+    ensure_cache_dir()
     print(
         _ls(
             filter_org=filter_org,
