@@ -11,22 +11,23 @@ from invoke import task
 
 _logger = logging.getLogger(__name__)
 
-def _git_pull(org_name, gh_repo, branch='master'):
+
+def _git_pull(org_name, gh_repo, branch="master"):
     print("Pull {}".format(gh_repo.name))
-    local_copy = '.data/docker-projects/{}'.format(gh_repo.name)
+    local_copy = ".data/docker-projects/{}".format(gh_repo.name)
     if os.path.exists(local_copy):
         os.chdir(local_copy)
-        subprocess.call(['git', 'pull'])
-        os.chdir('../../..')
+        subprocess.call(["git", "pull"])
+        os.chdir("../../..")
     else:
         os.chdir(".data/docker-projects")
         gh_address = "git@github.com:{}".format(gh_repo.full_name)
-        subprocess.call(['git', 'clone', gh_address])
-        os.chdir('../..')
+        subprocess.call(["git", "clone", gh_address])
+        os.chdir("../..")
 
 
-@task(name='pull')
-def pull(ctx, org_name='camptocamp', repo_name=None, branch=None):
+@task(name="pull")
+def pull(ctx, org_name="camptocamp", repo_name=None, branch=None):
     # TODO pull only odoo/migration.yml
     # git checkout origin/master -- odoo/migration.yml
     if repo_name:
@@ -51,8 +52,12 @@ def pull(ctx, org_name='camptocamp', repo_name=None, branch=None):
             _git_pull(org_name, gh_repo, branch=branch)
 
 
-@task(name='ls')
-def ls(ctx, org_name='camptocamp'):
+@task(name="ls")
+def ls(ctx, org_name="camptocamp"):
+    """Lists the active projects
+
+    NOTE: it requires a valid Github Token
+    """
     for gh_repo in github.repositories_by_topic(org_name, Topics.odoo_project):
         if not repo_has_topic(gh_repo, Topics.docker):
             continue
