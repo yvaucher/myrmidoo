@@ -9,11 +9,14 @@ from invoke import task
 
 from collections import defaultdict
 
+from .common import exit_msg
+
 MIG_FPATH = os.path.join('odoo', 'migration.yml')
 VERSION_FPATH = os.path.join('odoo', 'VERSION')
 LOCAL_SRC_PATH = os.path.join('odoo', 'local-src')
 DATA_PATH = os.path.join('.data')
 DOCKER_PROJECT_PATH = os.path.join('.data', 'docker-projects')
+
 
 def _get_local_src(project):
     """ List all modules in local project directory.
@@ -66,6 +69,8 @@ def _get_raw_addon_list():
     with open(os.path.join(DATA_PATH, 'project.list')) as f:
         projects = f.read().splitlines()
 
+    project_errors = {}
+
     for p in projects:
         project_path = os.path.join(DOCKER_PROJECT_PATH, p)
         local_addons = _get_local_src(project_path)
@@ -77,7 +82,11 @@ def _get_raw_addon_list():
                 v = '.'.join(v[:2])
             else:
                 # Unknown format
-                raise
+                message = (
+                    "Project {} has an unknown version format:\n{}"
+                ).format(p, v)
+                project_errors[p] = message
+                continue
 
         oca_addons = _get_OCA_addons(v)
         ce_addons = _get_CE_addons(v)
@@ -108,6 +117,8 @@ def _get_raw_addon_list():
 
     labels = ['addon', 'project', 'version', 'org', 'platform']
     df = pandas.DataFrame(addons, columns=labels)
+    if project_errors:
+        exit_msg(project_errors)
     return df
 
 
