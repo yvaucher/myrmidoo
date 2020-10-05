@@ -124,11 +124,6 @@ def _get_raw_addon_list():
 
 def _ls(filter_org=None, reverse=False, groupby_addon=False, groupby_version=False,
         sort_count=True, table_fmt='presto'):
-    """
-
-
-
-    """
     df = _get_raw_addon_list()
 
     if filter_org:
@@ -173,7 +168,7 @@ def ls(ctx, filter_org=None, reverse=False, groupby_addon=False, groupby_version
     Addon org can be OCA, c2c, core, enterprise
 
     @param filter_org: Filter on org
-    @param revers: reverse table order (counts are DESC by default)
+    @param reverse: reverse table order (counts are DESC by default)
     @param groupby_addon: Group count by addon name
     @param groupby_version: Group count by version
     @param sort_count: When using groupby counter, sort by count (Default True)
