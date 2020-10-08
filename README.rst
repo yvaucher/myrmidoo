@@ -15,7 +15,7 @@ invoke project.ls
 
 invoke project.pull
 
-    Pull the list of project into .data/docker-projects
+    Pull the list of project into .cache/myrmidoo/docker-projects
 
 invoke addons.ls
 
