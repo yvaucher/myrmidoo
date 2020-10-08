@@ -48,6 +48,14 @@ def pull(ctx, org_name="camptocamp", repo_name=None, branch=None):
                     Topics.docker,
                 )
                 return
+            elif repo_has_topic(gh_repo, Topics.on_pause):
+                _logger.info(
+                    "repo: %s/%s excluded because topics have %s",
+                    org_name,
+                    repo_name,
+                    Topics.on_pause,
+                )
+                return
         _git_pull(org_name, gh_repo, branch=branch)
     else:
         for gh_repo in github.repositories_by_topic(org_name, Topics.odoo_project):

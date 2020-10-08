@@ -17,6 +17,7 @@ class Topics(object):
     buildout = "buildout"
     need_5_digits = "need-5-digits"
     using_obsolete_docker_image = "using-obsolete-docker-image"
+    on_pause = "on-pause"
 
     @classmethod
     def version_for(cls, version):
