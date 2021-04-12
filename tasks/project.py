@@ -23,11 +23,12 @@ def _git_pull(org_name, gh_repo, branch="master", dest_dir=None):
     local_copy = os.path.join(dest_dir, gh_repo.name)
     if os.path.exists(local_copy):
         os.chdir(local_copy)
-        subprocess.call(["git", "pull"])
+        command = ["git", "pull", "-b", branch]
+        subprocess.call(command)
     else:
         os.chdir(dest_dir)
         gh_address = "git@github.com:{}".format(gh_repo.full_name)
-        subprocess.call(["git", "clone", gh_address])
+        subprocess.call(["git", "clone", gh_address, "-b", branch])
 
 
 @task(name="pull")
