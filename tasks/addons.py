@@ -27,7 +27,7 @@ def _get_local_src(project):
 
 
 def _get_OCA_addons(version):
-    """ Read from tasks/data/oca/*/{version}-addons list
+    """ Read from <cache>/oca/*/{version}-addons list
 
     """
     # TODO create the addons lists
@@ -35,7 +35,7 @@ def _get_OCA_addons(version):
 
 
 def _get_CE_addons(version):
-    """ Read from tasks/data/oca/*/{version}-addons list
+    """ Read from <cache>/odoo/odoo/*/{version}-addons list
 
     """
     # TODO create the addons lists
