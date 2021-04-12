@@ -22,8 +22,9 @@ def _git_pull(org_name, gh_repo, branch="master", dest_dir=None):
         os.makedirs(dest_dir)
     local_copy = os.path.join(dest_dir, gh_repo.name)
     if os.path.exists(local_copy):
+        # Not implemented, switch to another branch
         os.chdir(local_copy)
-        command = ["git", "pull", "-b", branch]
+        command = ["git", "pull"]
         subprocess.call(command)
     else:
         os.chdir(dest_dir)
