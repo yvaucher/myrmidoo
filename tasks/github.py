@@ -14,6 +14,7 @@ class Topics(object):
     odoo_project = "odoo-project"
     docker = "docker"
     version = "odoo-"  # version will be appended
+    mig_version = "odoo-mig-"  # version will be appended
     buildout = "buildout"
     need_5_digits = "need-5-digits"
     using_obsolete_docker_image = "using-obsolete-docker-image"
@@ -30,9 +31,10 @@ def login():
     yield github3.login(token=token)  # config.GITHUB_TOKEN)
 
 
-def repositories_by_topic(org, topic, include_archived=False):
+def repositories_by_topic(org, topics, include_archived=False):
     with login() as gh:
-        for repo in gh.search_repositories(f"org:{org} topic:{topic}"):
+        topics = " ".join("topic:{}".format(t) for t in topics)
+        for repo in gh.search_repositories(f"org:{org} " + topics):
             if not include_archived and repo.archived:
                 continue
             yield repo.repository
