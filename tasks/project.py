@@ -32,6 +32,17 @@ def _git_pull(org_name, gh_repo, branch="master", dest_dir=None):
         subprocess.call(["git", "clone", gh_address, "-b", branch])
 
 
+def _get_topics_filter(include_topics_str, exclude_topics_str):
+    """Concat default and include topics"""
+    topics = [Topics.odoo_project]
+    exclude_topics = []
+    if include_topics_str:
+        topics.extend(include_topics_str.split(","))
+    if exclude_topics_str:
+        exclude_topics.extend(exclude_topics_str.split(","))
+    return topics, exclude_topics
+
+
 @task(name="pull")
 def pull(
     ctx,
@@ -65,12 +76,13 @@ def pull(
     # TODO pull only odoo/migration.yml
     # git checkout origin/master -- odoo/migration.yml
     ensure_project_dir()
-    if include_topics:
-        include_topics = include_topics.split(",")
-    if exclude_topics:
-        exclude_topics = exclude_topics.split(",")
 
     if repo_name:
+        if include_topics:
+            include_topics = include_topics.split(",")
+        if exclude_topics:
+            exclude_topics = exclude_topics.split(",")
+
         with github.repository(org_name, repo_name) as gh_repo:
             if not (
                 repo_has_topic(gh_repo, Topics.odoo_project)
@@ -113,27 +125,32 @@ def pull(
 
         _git_pull(org_name, gh_repo, branch=branch, dest_dir=dest_dir)
     else:
-        topics = [Topics.odoo_project]
-        if include_topics:
-            topics.extend(include_topics)
-        for gh_repo in github.repositories_by_topic(org_name, topics):
+        topics, exc_topics = _get_topics_filter(include_topics, exclude_topics)
+        for gh_repo in github.repositories_by_topic(org_name, topics, exc_topics):
             if not repo_has_topic(gh_repo, Topics.docker):
                 continue
             _git_pull(org_name, gh_repo, branch=branch, dest_dir=dest_dir)
 
 
-def _ls(org_name="camptocamp"):
-    for gh_repo in github.repositories_by_topic(org_name, [Topics.odoo_project]):
+def _ls(org_name="camptocamp", include_topics=None, exclude_topics=None):
+    topics, exc_topics = _get_topics_filter(include_topics, exclude_topics)
+    for gh_repo in github.repositories_by_topic(org_name, topics, exc_topics):
         if not repo_has_topic(gh_repo, Topics.docker):
             continue
         yield gh_repo.name
 
 
 @task(name="ls")
-def ls(ctx, org_name="camptocamp"):
+def ls(ctx, org_name="camptocamp", include_topics=None, exclude_topics=None):
     """Lists the active projects
 
     NOTE: it requires a valid Github Token
     """
-    for proj_name in _ls(org_name=org_name):
+    projects = _ls(
+        org_name=org_name,
+        include_topics=include_topics,
+        exclude_topics=exclude_topics
+    )
+
+    for proj_name in projects:
         print(proj_name)

@@ -31,17 +31,27 @@ def login():
     yield github3.login(token=token)  # config.GITHUB_TOKEN)
 
 
-def repositories_by_topic(org, topics, include_archived=False):
-    with login() as gh:
-        topics = " ".join("topic:{}".format(t) for t in topics)
-        for repo in gh.search_repositories(f"org:{org} " + topics):
-            if not include_archived and repo.archived:
-                continue
-            yield repo.repository
-
-
 def has_topic(repository, topic):
     return topic in repository.topics().names
+
+
+def _exclude(repository, exclude_topics):
+    for t in exclude_topics:
+        if has_topic(repository, t):
+            return True
+    return False
+
+
+def repositories_by_topic(org, topics, exclude_topics, include_archived=False):
+    with login() as gh:
+        topics = " ".join("topic:{}".format(t) for t in topics)
+        gh_filter = " ".join([f"org:{org}", topics])
+        for repo in gh.search_repositories(gh_filter):
+            if not include_archived and repo.archived:
+                continue
+            if _exclude(repo.repository, exclude_topics):
+                continue
+            yield repo.repository
 
 
 def repo_has_topic(gh_repo, topic):
