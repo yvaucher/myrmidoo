@@ -48,7 +48,7 @@ def pull(
     ctx,
     org_name="camptocamp",
     repo_name=None,
-    branch=None,
+    branch="master",
     include_topics=None,
     exclude_topics=None,
     dest_dir=None,
